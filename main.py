@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 st.set_page_config(page_title="영화 데이터 그래프 도감 2 - 분포와 관계", layout="wide")
@@ -86,9 +87,80 @@ st.info("여기에 이 그래프를 보고 알 수 있는 내용을 한 문장�
 st.divider()
 
 # ------------------------------------------------------------------
+# 3. 총 관객 히스토그램
+# ------------------------------------------------------------------
+st.header("3. 총 관객(total_audi) 분포")
+
+fig_hist = px.histogram(
+    df,
+    x="total_audi",
+    nbins=20,
+)
+fig_hist.update_traces(
+    hovertemplate="구간: %{x}<br>영화 수: %{y}편<extra></extra>",
+)
+fig_hist.update_layout(
+    xaxis_title="총 관객 수",
+    yaxis_title="영화 편수",
+    bargap=0.05,
+)
+
+st.plotly_chart(fig_hist, use_container_width=True)
+
+# 가장 영화가 몰려 있는 구간 계산
+counts, bin_edges = np.histogram(df["total_audi"].dropna(), bins=20)
+max_bin_idx = counts.argmax()
+bin_low = int(bin_edges[max_bin_idx])
+bin_high = int(bin_edges[max_bin_idx + 1])
+bin_count = int(counts[max_bin_idx])
+
+# 총 관객이 가장 많은 영화
+top_movie_row = df.loc[df["total_audi"].idxmax()]
+top_movie_name = top_movie_row["movieNm"]
+top_movie_audi = int(top_movie_row["total_audi"])
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info(
+    f"전체 216편 가운데 가장 많은 {bin_count}편의 영화가 총 관객 "
+    f"{bin_low:,}명 ~ {bin_high:,}명 구간에 몰려 있고, "
+    f"총 관객이 가장 많은 영화는 **{top_movie_name}**"
+    f"(총 관객 {top_movie_audi:,}명)입니다."
+)
+
+st.divider()
+
+# ------------------------------------------------------------------
+# 4. 개봉일 스크린수 vs 총 관객 산점도 (장르별 색상)
+# ------------------------------------------------------------------
+st.header("4. 개봉일 스크린수와 총 관객의 관계")
+
+fig_scatter = px.scatter(
+    df,
+    x="first_scrn",
+    y="total_audi",
+    color="genre",
+    hover_name="movieNm",
+)
+fig_scatter.update_traces(
+    hovertemplate="<b>%{hovertext}</b><br>개봉일 스크린수: %{x:,}<br>총 관객: %{y:,}명<extra></extra>",
+)
+fig_scatter.update_layout(
+    xaxis_title="개봉일 스크린수",
+    yaxis_title="총 관객 수",
+    legend_title_text="장르",
+)
+
+st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info("여기에 이 그래프를 보고 알 수 있는 내용을 한 문장으로 적어 보세요.")
+
+st.divider()
+
+# ------------------------------------------------------------------
 # (다음 그래프를 추가할 자리)
 # ------------------------------------------------------------------
-# st.header("3. ...")
+# st.header("5. ...")
 # ...
 # st.markdown("**이 그래프로 알 수 있는 것**")
 # st.info("여기에 이 그래프를 보고 알 수 있는 내용을 한 문장으로 적어 보세요.")
